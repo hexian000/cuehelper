@@ -3,12 +3,16 @@ package me.hexian000.cuehelper;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.time.Duration;
@@ -22,6 +26,20 @@ public class CueHelper extends JFrame {
     private JTextArea outputText;
     private JScrollPane tablePane;
     private JTextField charsetField;
+    private JButton openButton;
+    JFileChooser chooser;
+
+    public void chooseFile() {
+        var result = chooser.showOpenDialog(this);
+        if (result != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+        try {
+            readCue(chooser.getSelectedFile());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
 
     public CueHelper() {
         setContentPane(contentPane);
@@ -51,8 +69,8 @@ public class CueHelper extends JFrame {
                     charsetField.setForeground(Color.RED);
                 }
                 try {
-                    if (cuePath != null) {
-                        readCue(cuePath);
+                    if (cueFile != null) {
+                        readCue(cueFile);
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();
@@ -77,8 +95,8 @@ public class CueHelper extends JFrame {
 
         tablePane.setDropTarget(new FileDropTarget() {
             @Override
-            public void onFileDrop(List<String> files) {
-                for (String file : files) {
+            public void onFileDrop(List<File> files) {
+                for (File file : files) {
                     try {
                         readCue(file);
                         break;
@@ -100,11 +118,33 @@ public class CueHelper extends JFrame {
                 appendOutput();
             }
         });
+        openButton.addActionListener(e -> chooseFile());
+        chooser = new JFileChooser();
+        chooser.setFileFilter(new FileFilter() {
+            @Override
+            public boolean accept(File f) {
+                if (!f.isFile()) {
+                    return false;
+                }
+                var path = f.getName();
+                var index = path.lastIndexOf(".");
+                if (index == -1) {
+                    return false;
+                }
+                var ext = path.substring(index).toLowerCase();
+                return ".cue".equals(ext);
+            }
+
+            @Override
+            public String getDescription() {
+                return "CUE files";
+            }
+        });
     }
 
     Charset charset;
     CueFile cue;
-    String cuePath;
+    File cueFile;
 
     private static String formatDuration(Duration duration) {
         return String.format("%d:%02d.%02d",
@@ -121,9 +161,9 @@ public class CueHelper extends JFrame {
         return null;
     }
 
-    private void readCue(String path) throws IOException, CueParseException {
+    private void readCue(File file) throws IOException, CueParseException {
         var parser = new CueParser();
-        cue = parser.Parse(path, charset);
+        cue = parser.Parse(file.getAbsolutePath(), charset);
         setTitle(String.format("[%s - %s] - CueHelper", cue.getArtist(), cue.getTitle()));
 
         final DefaultTableModel model = new DefaultTableModel() {
@@ -152,7 +192,7 @@ public class CueHelper extends JFrame {
         columnModel.getColumn(0).setMaxWidth(48);
         columnModel.getColumn(3).setMaxWidth(96);
 
-        cuePath = path;
+        cueFile = file;
     }
 
     private void appendOutput() {
