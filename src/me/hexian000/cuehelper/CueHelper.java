@@ -146,9 +146,24 @@ public class CueHelper extends JFrame {
     CueFile cue;
     File cueFile;
 
+    private static String sanitizeFilename(String name) {
+        name = name.replace('<', '(');
+        name = name.replace('>', ')');
+        name = name.replace('/', '_');
+        name = name.replace('\\', '_');
+
+        name = name.replace('"', '\'');
+        name = name.replace('|', '-');
+
+        name = name.replace("\0", "");
+        name = name.replace("?", "");
+        name = name.replace("*", "");
+        return name;
+    }
+
     private static String formatDuration(Duration duration) {
-        return String.format("%d:%02d.%02d",
-                duration.toMinutes(), duration.toSecondsPart(), duration.toMillisPart() / 10);
+        return String.format("%02d:%02d:%02d.%02d",
+                duration.toHours(), duration.toMinutesPart(), duration.toSecondsPart(), duration.toMillisPart() / 10);
     }
 
     private Duration GetDuration(int trackId) {
@@ -212,7 +227,10 @@ public class CueHelper extends JFrame {
                         "-c:a flac",
                         "-ss", formatDuration(track.getLastIndex()),
                         "-t", formatDuration(duration),
-                        String.format("-y \"%02d %s.flac\"", trackId, track.getTitle()),
+                        String.format("-y \"%s\"",
+                                sanitizeFilename(String.format("%02d %s.flac",
+                                        trackId, track.getTitle()))
+                        ),
                 };
                 outputText.append(String.join(" ", parts) + System.lineSeparator());
             } else {
