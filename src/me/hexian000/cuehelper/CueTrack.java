@@ -23,7 +23,7 @@ public class CueTrack {
 
     private String title;
     private String artist;
-    private Map<Integer, Duration> indexes = new TreeMap<>();
+    private final Map<Integer, Duration> indexes = new TreeMap<>();
 
     public Duration getIndex(int id) {
         return indexes.get(id);

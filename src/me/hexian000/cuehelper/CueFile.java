@@ -31,7 +31,7 @@ public class CueFile {
     private String title;
     private String artist;
     private String file;
-    private Map<Integer, CueTrack> tracks = new TreeMap<>();
+    private final Map<Integer, CueTrack> tracks = new TreeMap<>();
 
     public void addTrack(int id, CueTrack track) {
         tracks.put(id, track);
