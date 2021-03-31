@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 
 public class CueHelper extends JFrame {
@@ -154,6 +155,7 @@ public class CueHelper extends JFrame {
 
         name = name.replace('"', '\'');
         name = name.replace('|', '-');
+        name = name.replace(':', '-');
 
         name = name.replace("\0", "");
         name = name.replace("?", "");
@@ -179,7 +181,15 @@ public class CueHelper extends JFrame {
     private void readCue(File file) throws IOException, CueParseException {
         var parser = new CueParser();
         cue = parser.Parse(file.getAbsolutePath(), charset);
-        setTitle(String.format("[%s - %s] - CueHelper", cue.getArtist(), cue.getTitle()));
+        if (cue.getTitle() != null) {
+            if (cue.getArtist() != null) {
+                setTitle(String.format("[%s - %s] - CueHelper", cue.getArtist(), cue.getTitle()));
+            } else {
+                setTitle(String.format("[%s] - CueHelper", cue.getTitle()));
+            }
+        } else {
+            setTitle(String.format("[%s] - CueHelper", cue.getFile()));
+        }
 
         final DefaultTableModel model = new DefaultTableModel() {
             @Override
@@ -215,39 +225,39 @@ public class CueHelper extends JFrame {
             int trackId = Integer.parseInt((String) trackTable.getModel().getValueAt(row, 0));
             var track = cue.getTrack(trackId);
             var duration = GetDuration(trackId);
-            if (duration != null) {
-                String[] parts = new String[]{
-                        "ffmpeg",
-                        String.format("-i \"%s\"", cue.getFile()),
-                        "-map_metadata -1",
-                        String.format("-metadata \"title=%s\"", track.getTitle()),
-                        String.format("-metadata \"artist=%s\"", track.getArtist()),
-                        String.format("-metadata \"track=%d\"", trackId),
-                        String.format("-metadata \"album=%s\"", cue.getTitle()),
-                        "-c:a flac",
-                        "-ss", formatDuration(track.getLastIndex()),
-                        "-t", formatDuration(duration),
-                        String.format("-y \"%s\"",
-                                sanitizeFilename(String.format("%02d %s.flac",
-                                        trackId, track.getTitle()))
-                        ),
-                };
-                outputText.append(String.join(" ", parts) + System.lineSeparator());
-            } else {
-                String[] parts = new String[]{
-                        "ffmpeg",
-                        String.format("-i \"%s\"", cue.getFile()),
-                        "-map_metadata -1",
-                        String.format("-metadata \"title=%s\"", track.getTitle()),
-                        String.format("-metadata \"artist=%s\"", track.getArtist()),
-                        String.format("-metadata \"track=%d\"", trackId),
-                        String.format("-metadata \"album=%s\"", cue.getTitle()),
-                        "-c:a flac",
-                        "-ss", formatDuration(track.getLastIndex()),
-                        String.format("-y \"%02d %s.flac\"", trackId, track.getTitle()),
-                };
-                outputText.append(String.join(" ", parts) + System.lineSeparator());
+            final List<String> parts = new ArrayList<>();
+            parts.add("ffmpeg");
+            parts.add(String.format("-i \"%s\"", cue.getFile()));
+            parts.add("-map_metadata -1");
+            if (track.getTitle() != null) {
+                parts.add(String.format("-metadata \"title=%s\"", track.getTitle()));
             }
+            if (track.getArtist() != null) {
+                parts.add(String.format("-metadata \"artist=%s\"", track.getArtist()));
+            }
+            parts.add(String.format("-metadata \"track=%s\"", trackId));
+            if (cue.getTitle() != null) {
+                parts.add(String.format("-metadata \"album=%s\"", cue.getTitle()));
+            }
+            parts.add("-c:a flac");
+            parts.add("-ss");
+            parts.add(formatDuration(track.getLastIndex()));
+            if (duration != null) {
+                parts.add("-t");
+                parts.add(formatDuration(duration));
+            }
+            String outFile;
+            if (track.getTitle() != null) {
+                if (track.getArtist() != null) {
+                    outFile = String.format("%02d %s - %s.flac", trackId, track.getArtist(), track.getTitle());
+                } else {
+                    outFile = String.format("%02d %s.flac", trackId, track.getTitle());
+                }
+            } else {
+                outFile = String.format("%02d.flac", trackId);
+            }
+            parts.add(String.format("-y \"%s\"", sanitizeFilename(outFile)));
+            outputText.append(String.join(" ", parts) + System.lineSeparator());
         }
     }
 
