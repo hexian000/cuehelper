@@ -75,34 +75,41 @@ public class CueParser {
 
     private void parseLine(List<String> tokens) throws CueParseException {
         switch (tokens.get(0).toUpperCase()) {
-            case "FILE" -> output.setFile(tokens.get(1));
-            case "TITLE" -> {
+            case "FILE": {
+                output.setFile(tokens.get(1));
+                break;
+            }
+            case "TITLE": {
                 if (trackId > 0) {
                     output.getTrack(trackId).setTitle(tokens.get(1));
                     break;
                 }
                 output.setTitle(tokens.get(1));
+                break;
             }
-            case "PERFORMER" -> {
+            case "PERFORMER": {
                 if (trackId > 0) {
                     output.getTrack(trackId).setArtist(tokens.get(1));
                     break;
                 }
                 output.setArtist(tokens.get(1));
+                break;
             }
-            case "TRACK" -> {
+            case "TRACK": {
                 trackId = Integer.parseInt(tokens.get(1));
                 if (trackId <= 0) {
                     throw new CueParseException("TRACK <= 00");
                 }
                 var track = createTrack(trackId);
                 track.setArtist(output.getArtist());
+                break;
             }
-            case "INDEX" -> {
+            case "INDEX": {
                 if (trackId <= 0) {
                     throw new CueParseException("INDEX without TRACK");
                 }
                 createIndex(trackId, Integer.parseInt(tokens.get(1)), tokens.get(2));
+                break;
             }
         }
     }

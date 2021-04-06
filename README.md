@@ -14,7 +14,7 @@ With a portable Java GUI.
 
 ## Environment
 
-Written in Java 16 (OpenJDK 16)
+Written in Java 11 (OpenJDK 11)
 
 Dev notes: use IntelliJ IDEA
 
@@ -23,9 +23,9 @@ Intended to be portable but may not tested on some platforms.
 
 ## Usage
 
-You need to install JRE 16, [OpenJDK 16](https://openjdk.java.net/) is recommended.
+You need to install JRE 11, [OpenJDK 11](https://openjdk.java.net/) is recommended.
 
-您需要先安装JRE 16，推荐使用[OpenJDK 16](https://openjdk.java.net/)
+您需要先安装JRE 11，推荐使用[OpenJDK 11](https://openjdk.java.net/)
 
 Download a prebuilt jar from the [release section](https://github.com/hexian000/cuehelper/releases) or build one by yourself.
 
