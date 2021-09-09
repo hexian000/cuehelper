@@ -8,8 +8,6 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -57,7 +55,7 @@ public class CueHelper extends JFrame {
         charset = Charset.defaultCharset();
         charsetField.setText(charset.name());
         charsetField.getDocument().addDocumentListener(new DocumentListener() {
-            private void onChanged(DocumentEvent e) {
+            private void onChanged() {
                 var name = charsetField.getText();
                 try {
                     if (name.isEmpty()) {
@@ -80,17 +78,17 @@ public class CueHelper extends JFrame {
 
             @Override
             public void insertUpdate(DocumentEvent e) {
-                onChanged(e);
+                onChanged();
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
-                onChanged(e);
+                onChanged();
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
-                onChanged(e);
+                onChanged();
             }
         });
 
